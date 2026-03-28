@@ -7,6 +7,7 @@ import { Heart } from 'lucide-react';
 import { useAuth } from '../../src/context/AuthContext';
 import { useAlerts } from '../../src/context/AlertContext';
 import ThemeToggle from '../../src/components/ThemeToggle';
+import LanguageSwitcher from '../../src/components/LanguageSwitcher';
 import VoiceMicButton from '../../src/components/voice/VoiceMicButton';
 import VoiceOverlay from '../../src/components/voice/VoiceOverlay';
 import { VoiceProvider } from '../../src/context/VoiceContext';
@@ -41,6 +42,7 @@ export default function CaregiverLayout({ children }) {
       <header className="app-header">
         <div className="header-logo"><Heart fill="#0EA5E9" stroke="none" size={20} />{t('vitalsync_brand', 'VitalSync')}</div>
         <div className="header-actions">
+          <LanguageSwitcher />
           <ThemeToggle />
 
           {/* Alerts bell in header */}

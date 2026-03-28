@@ -6,6 +6,7 @@ import { LayoutDashboard, Pill, FileText, Activity, Bell, Salad } from 'lucide-r
 import { Heart } from 'lucide-react';
 import { useAuth } from '../../src/context/AuthContext';
 import ThemeToggle from '../../src/components/ThemeToggle';
+import LanguageSwitcher from '../../src/components/LanguageSwitcher';
 import VoiceMicButton from '../../src/components/voice/VoiceMicButton';
 import VoiceOverlay from '../../src/components/voice/VoiceOverlay';
 import Link from 'next/link';
@@ -47,6 +48,7 @@ const { user, loading } = useAuth();
       <header className="app-header">
         <div className="header-logo"><Heart fill="#0EA5E9" stroke="none" size={20} />{t('vitalsync_brand', 'VitalSync')}</div>
         <div className="header-actions">
+          <LanguageSwitcher />
           <ThemeToggle />
           <Link href="/patient/profile" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'none' }}>
             <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#EF4444,#8B5CF6)' }}>

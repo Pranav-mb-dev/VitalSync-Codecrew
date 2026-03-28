@@ -31,7 +31,7 @@ export default function DoctorLayout({ children }) {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="header-logo"><Heart fill="#0EA5E9" stroke="none" size={20} />VitalSync</div>
+        <div className="header-logo"><Heart fill="#0EA5E9" stroke="none" size={20} />{t('vitalsync_brand', 'VitalSync')}</div>
         <div className="header-actions">
           <LanguageSwitcher />
           <ThemeToggle />

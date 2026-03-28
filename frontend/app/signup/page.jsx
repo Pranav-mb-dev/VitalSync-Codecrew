@@ -77,7 +77,7 @@ export default function Signup() {
           <label className="input-label">{t('email')}</label>
           <div className="input-icon-wrap">
             <Mail size={16} className="input-icon" />
-            <input className="input" type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            <input className="input" type="email" placeholder={t('email_placeholder')} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export default function Signup() {
             <label className="input-label">{t('patient_pair_code')}</label>
             <div className="input-icon-wrap">
               <Link2 size={16} className="input-icon" />
-              <input className="input" placeholder="8-character code" value={form.pairCode} onChange={(e) => setForm((f) => ({ ...f, pairCode: e.target.value.toUpperCase() }))} />
+              <input className="input" placeholder={t('pair_code_placeholder')} value={form.pairCode} onChange={(e) => setForm((f) => ({ ...f, pairCode: e.target.value.toUpperCase() }))} />
             </div>
           </div>
         )}

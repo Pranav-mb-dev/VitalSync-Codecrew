@@ -19,9 +19,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -55,6 +58,12 @@ public class VitalReadingService {
 
     @Value("${app.sos.blood-sugar-low:50}")
     private double bloodSugarLow;
+
+    @Value("${APP_VITALS_MOCK_ENABLED:${app.vitals.mock-enabled:false}}")
+    private boolean vitalsMockEnabled;
+
+    @Value("${APP_VITALS_MOCK_POINTS:${app.vitals.mock-points:12}}")
+    private int vitalsMockPoints;
 
     @Transactional
     public VitalReadingResponse recordVital(String email, VitalReadingRequest request) {
@@ -138,13 +147,96 @@ public class VitalReadingService {
 
     public List<VitalReadingResponse> getVitals(String email, String type) {
         User user = careContextService.resolveDataOwner(email);
+        // When mock mode is enabled, always return generated data (do not read/write DB here).
+        if (vitalsMockEnabled) {
+            VitalReading.VitalType vType = null;
+            if (type != null && !type.isBlank()) {
+                vType = VitalReading.VitalType.valueOf(type.toUpperCase());
+            }
+            return buildMockVitals(user, vType);
+        }
         if (type != null && !type.isBlank()) {
             VitalReading.VitalType vType = VitalReading.VitalType.valueOf(type.toUpperCase());
-            return vitalReadingRepository.findByUserAndTypeOrderByMeasuredAtDesc(user, vType)
+            List<VitalReadingResponse> res = vitalReadingRepository.findByUserAndTypeOrderByMeasuredAtDesc(user, vType)
                     .stream().map(this::toResponse).collect(Collectors.toList());
+            return res;
         }
-        return vitalReadingRepository.findByUserOrderByMeasuredAtDesc(user)
+        List<VitalReadingResponse> res = vitalReadingRepository.findByUserOrderByMeasuredAtDesc(user)
                 .stream().map(this::toResponse).collect(Collectors.toList());
+        return res;
+    }
+
+    private List<VitalReadingResponse> buildMockVitals(User user, VitalReading.VitalType onlyType) {
+        int points = Math.max(6, Math.min(48, vitalsMockPoints));
+
+        long seed = user.getId() != null ? user.getId().getMostSignificantBits() ^ user.getId().getLeastSignificantBits() : 42L;
+        Random rnd = new Random(seed);
+        LocalDateTime endAt = LocalDateTime.now().withSecond(0).withNano(0);
+
+        List<VitalReading.VitalType> types = new ArrayList<>();
+        if (onlyType != null) {
+            types.add(onlyType);
+        } else {
+            types.addAll(List.of(VitalReading.VitalType.values()));
+        }
+
+        List<VitalReadingResponse> out = new ArrayList<>(types.size() * points);
+        for (VitalReading.VitalType type : types) {
+            String unit = switch (type) {
+                case BLOOD_PRESSURE -> "mmHg";
+                case BLOOD_SUGAR -> "mg/dL";
+                case HEART_RATE -> "bpm";
+                case OXYGEN_SATURATION -> "%";
+                case WEIGHT -> "kg";
+                case TEMPERATURE -> "°C";
+            };
+
+            for (int i = 0; i < points; i++) {
+                // Spread points across the last ~24 hours.
+                int hoursBack = (points - 1 - i) * 2;
+                LocalDateTime measuredAt = endAt.minusHours(hoursBack);
+
+                Double primary;
+                Double secondary = null;
+                switch (type) {
+                    case BLOOD_SUGAR -> primary = clamp(85 + rnd.nextGaussian() * 18, 55, 240);
+                    case OXYGEN_SATURATION -> primary = clamp(97 + rnd.nextGaussian() * 1.2, 90, 100);
+                    case HEART_RATE -> primary = clamp(78 + rnd.nextGaussian() * 10, 50, 130);
+                    case WEIGHT -> primary = round1(clamp(70 + rnd.nextGaussian() * 2.2, 45, 120));
+                    case TEMPERATURE -> primary = round1(clamp(36.8 + rnd.nextGaussian() * 0.25, 35.5, 39.5));
+                    case BLOOD_PRESSURE -> {
+                        primary = clamp(122 + rnd.nextGaussian() * 10, 90, 190); // systolic
+                        secondary = clamp(80 + rnd.nextGaussian() * 7, 55, 130); // diastolic
+                    }
+                    default -> primary = 0.0;
+                }
+
+                boolean critical = isCriticalReading(type, primary, secondary);
+
+                out.add(VitalReadingResponse.builder()
+                        .id(UUID.randomUUID())
+                        .type(type.name())
+                        .value(round1(primary))
+                        .secondaryValue(secondary != null ? round1(secondary) : null)
+                        .unit(unit)
+                        .measuredAt(measuredAt)
+                        .notes("Mock data")
+                        .criticalFlag(critical)
+                        .createdAt(measuredAt)
+                        .build());
+            }
+        }
+
+        out.sort(Comparator.comparing(VitalReadingResponse::getMeasuredAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        return out;
+    }
+
+    private static double clamp(double v, double min, double max) {
+        return Math.max(min, Math.min(max, v));
+    }
+
+    private static double round1(double v) {
+        return Math.round(v * 10.0) / 10.0;
     }
 
     private boolean isCriticalReading(VitalReading.VitalType type, Double value, Double secondary) {

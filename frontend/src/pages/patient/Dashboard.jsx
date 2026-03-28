@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, Droplets, Heart, Wind, Thermometer, CheckCircle2, CalendarDays, Pill, Utensils } from 'lucide-react';
 import HealthScoreRing from '../../components/HealthScoreRing';
+import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -162,24 +163,43 @@ export default function PatientDashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.95fr) minmax(0, 1.25fr)', gap: 8, marginBottom: 20 }}>
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--gradient-card)', minHeight: 130, padding: 12 }}>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>{t('health_score')}</p>
-          <HealthScoreRing score={wellnessScore} size={72} />
-          <p style={{ fontSize: 14, fontWeight: 700, marginTop: 6, color: 'var(--primary)' }}>
-            {wellnessScore >= 75 ? t('health_score_stable') : wellnessScore >= 50 ? t('health_score_attention') : t('health_score_critical')}
-          </p>
+          {loading ? (
+            <>
+              <Skeleton variant="circle" width="72px" height="72px" />
+              <Skeleton variant="text" width="80px" style={{ marginTop: 10 }} />
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>{t('health_score')}</p>
+              <HealthScoreRing score={wellnessScore} size={72} />
+              <p style={{ fontSize: 14, fontWeight: 700, marginTop: 6, color: 'var(--primary)' }}>
+                {wellnessScore >= 75 ? t('health_score_stable') : wellnessScore >= 50 ? t('health_score_attention') : t('health_score_critical')}
+              </p>
+            </>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-          {vitalCards.map((vital) => (
-            <div key={vital.label} className="stat-card" style={{ padding: '10px 10px', minHeight: 70 }}>
-              <div className="stat-icon" style={{ background: vital.bg, color: vital.color, borderRadius: 6, width: 22, height: 22, marginBottom: 4 }}>{vital.icon}</div>
-              <div>
-                <div className="stat-value" style={{ color: vital.color, fontSize: 16 }}>{vital.value}</div>
-                <div className="stat-unit" style={{ fontSize: 10 }}>{vital.unit}</div>
-                <div className="stat-label" style={{ marginTop: 2, fontSize: 10 }}>{vital.label}</div>
+          {loading ? (
+            [1, 2, 3, 4].map(i => (
+              <div key={i} className="stat-card" style={{ padding: '10px' }}>
+                <Skeleton variant="circle" width="22px" height="22px" style={{ marginBottom: 4 }} />
+                <Skeleton variant="text" width="100%" height="20px" />
+                <Skeleton variant="text" width="60%" height="10px" />
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            vitalCards.map((vital) => (
+              <div key={vital.label} className="stat-card" style={{ padding: '10px 10px', minHeight: 70 }}>
+                <div className="stat-icon" style={{ background: vital.bg, color: vital.color, borderRadius: 6, width: 22, height: 22, marginBottom: 4 }}>{vital.icon}</div>
+                <div>
+                  <div className="stat-value" style={{ color: vital.color, fontSize: 16 }}>{vital.value}</div>
+                  <div className="stat-unit" style={{ fontSize: 10 }}>{vital.unit}</div>
+                  <div className="stat-label" style={{ marginTop: 2, fontSize: 10 }}>{vital.label}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -190,26 +210,39 @@ export default function PatientDashboard() {
             <span className="section-title"><Pill size={14} /> {noonLabel} {t('medications')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-            {currentNoonMeds.map((med) => {
-              const isLogged = med.takenSessionsToday?.includes(currentNoon) || false;
-              return (
-              <div key={med.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', opacity: isLogged ? 0.65 : 1 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: isLogged ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLogged ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }}>
-                  <Pill size={18} />
+            {loading ? (
+              [1, 2].map(i => (
+                <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Skeleton variant="rect" width="38px" height="38px" style={{ borderRadius: 10 }} />
+                  <div style={{ flex: 1 }}>
+                    <Skeleton variant="text" width="60%" />
+                    <Skeleton variant="text" width="40%" />
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, textDecoration: isLogged ? 'line-through' : 'none' }}>{med.name} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>{med.dosage}</span></p>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{med.instructions || t('after_food')}</p>
+              ))
+            ) : (
+              currentNoonMeds.map((med) => {
+                const isLogged = med.takenSessionsToday?.includes(currentNoon) || false;
+                return (
+                <div key={med.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', opacity: isLogged ? 0.65 : 1 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: isLogged ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLogged ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }}>
+                    <Pill size={18} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, textDecoration: isLogged ? 'line-through' : 'none' }}>{med.name} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>{med.dosage}</span></p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{med.instructions || t('after_food')}</p>
+                  </div>
+                  {isLogged ? (
+                    <span className="pill pill-success" style={{ opacity: 0.8 }}>{t('taken')}</span>
+                  ) : (
+                    <button onClick={() => handleLogMed(med)} className="pill pill-danger" style={{ cursor: 'pointer', border: 'none', fontWeight: 600 }}>
+                      {t('take_now')}
+                    </button>
+                  )}
                 </div>
-                {isLogged ? (
-                  <span className="pill pill-success" style={{ opacity: 0.8 }}>{t('taken')}</span>
-                ) : (
-                  <button onClick={() => handleLogMed(med)} className="pill pill-danger" style={{ cursor: 'pointer', border: 'none', fontWeight: 600 }}>
-                    {t('take_now')}
-                  </button>
-                )}
-              </div>
-            )})}</div>
+              )}))
+            }
+          </div>
         </>
       )}
 
@@ -219,7 +252,15 @@ export default function PatientDashboard() {
       </div>
       <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading ? (
-          <div className="card" style={{ animation: 'pulse 2s infinite' }}>{t('loading_meal')}</div>
+          [1, 2].map(i => (
+            <div key={i} className="card" style={{ display: 'flex', gap: 12 }}>
+              <Skeleton variant="rect" width="32px" height="32px" style={{ borderRadius: 8 }} />
+              <div style={{ flex: 1 }}>
+                <Skeleton variant="text" width="50%" />
+                <Skeleton variant="text" width="70%" />
+              </div>
+            </div>
+          ))
         ) : currentNoonDiets.length === 0 ? (
           <div className="card" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t('no_diet')}</div>
         ) : (
@@ -266,7 +307,11 @@ export default function PatientDashboard() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
         {loading ? (
-          <div className="card">{t('loading')}</div>
+          [1, 2].map(i => (
+            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+              <Skeleton variant="rect" width="100%" height="24px" />
+            </div>
+          ))
         ) : currentNoonHabits.length === 0 ? (
           <div className="card" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t('no_habits')}</div>
         ) : (
@@ -299,7 +344,15 @@ export default function PatientDashboard() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
         {loading ? (
-          <div className="card">{t('loading')}</div>
+          [1].map(i => (
+            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+              <Skeleton variant="rect" width="38px" height="38px" style={{ borderRadius: 10 }} />
+              <div style={{ flex: 1 }}>
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="40%" />
+              </div>
+            </div>
+          ))
         ) : upcomingAppointments.length === 0 ? (
           <div className="card" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t('no_appointments')}</div>
         ) : (

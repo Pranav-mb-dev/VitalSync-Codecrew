@@ -24,9 +24,9 @@ export default function DoctorLayout() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="header-logo">
-          <Heart fill="#0EA5E9" stroke="none" size={20} />
-          VitalSync
+        <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/doctor/patients')}>
+          <img src="/logo.png" alt="VitalSync" style={{ height: 32, width: 'auto', filter: 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.4))' }} />
+          <span style={{ fontWeight: 800, letterSpacing: '-0.5px' }}>VitalSync</span>
         </div>
         <div className="header-actions">
           <LanguageSwitcher />
@@ -38,7 +38,9 @@ export default function DoctorLayout() {
           </button>
         </div>
       </header>
-      <main className="page-content"><Outlet /></main>
+      <main className="page-content">
+        <Outlet />
+      </main>
       <nav className="bottom-nav">
         {NAV.map((item) => {
           const Icon = item.icon;

@@ -31,6 +31,19 @@ public class AssistantController {
         );
     }
 
+    @PostMapping("/chat")
+    public ResponseEntity<VoiceAssistantResponse> chat(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody VoiceAssistantRequest request
+    ) {
+        return ResponseEntity.ok(
+                voiceAssistantService.chat(
+                        userDetails.getUsername(),
+                        request.getTranscript()
+                )
+        );
+    }
+
     @GetMapping("/greet")
     public ResponseEntity<VoiceAssistantResponse> greet(
             @AuthenticationPrincipal UserDetails userDetails

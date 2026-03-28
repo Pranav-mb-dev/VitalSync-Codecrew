@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, CalendarDays, CheckCircle2, Plus, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
+import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 
 const DEFAULT_APPOINTMENT = {
@@ -197,7 +198,15 @@ export default function RemindersPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
         {loading ? (
-          <div className="card">{t('loading')}</div>
+          [1, 2].map(i => (
+            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Skeleton variant="rect" width="42px" height="42px" style={{ borderRadius: 12 }} />
+              <div style={{ flex: 1 }}>
+                <Skeleton variant="text" width="50%" height="18px" />
+                <Skeleton variant="text" width="70%" height="14px" />
+              </div>
+            </div>
+          ))
         ) : sortedAppointments.length === 0 ? (
           <div className="card">{t('no_data')}</div>
         ) : (
@@ -235,7 +244,15 @@ export default function RemindersPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {loading ? (
-          <div className="card">{t('loading')}</div>
+          [1, 2, 3].map(i => (
+            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <Skeleton variant="text" width="60%" height="18px" />
+                <Skeleton variant="text" width="40%" height="14px" />
+              </div>
+              <Skeleton variant="button" width="80px" />
+            </div>
+          ))
         ) : currentNoonHabits.length === 0 ? (
           <div className="card">{t('no_data')}</div>
         ) : (

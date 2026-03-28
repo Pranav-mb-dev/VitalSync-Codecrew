@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import api from '../services/api';
 
 const LANGS = [
   { code: 'en', label: 'EN', name: 'English' },
@@ -16,9 +17,17 @@ export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
   const current = LANGS.find(l => l.code === i18n.language) || LANGS[0];
 
-  const select = (code) => {
+  const select = async (code) => {
     i18n.changeLanguage(code);
     localStorage.setItem('vs-lang', code);
+    
+    // Sync to DB
+    try {
+      await api.put('/profile', { language: code });
+    } catch (err) {
+      console.warn('Failed to sync language to backend', err);
+    }
+
     // Sync to vs-user so VoiceNavigator picks up the correct mic language
     try {
       const stored = localStorage.getItem('vs-user');

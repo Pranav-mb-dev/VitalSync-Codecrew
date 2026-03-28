@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid } from 'recharts';
 
 import api from '../../services/api';
+import Skeleton from '../../components/Skeleton';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -98,7 +99,9 @@ export default function Progress() {
         </div>
 
         {loading ? (
-          <div>{t('loading_chart')}</div>
+          <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Skeleton variant="rect" width="100%" height="100%" style={{ borderRadius: 12 }} />
+          </div>
         ) : chartData.length === 0 ? (
           <div>{t('no_readings')}</div>
         ) : (
@@ -121,18 +124,28 @@ export default function Progress() {
 
       <div className="section-header"><span className="section-title">{t('current_vitals')}</span></div>
       <div className="stats-grid" style={{ marginBottom: 20 }}>
-        {Object.values(CHARTS).map((item) => {
-          const vital = latestByType[item.key];
-          return (
-            <div key={item.key} className="stat-card">
-              <div className="stat-value" style={{ color: item.color }}>
-                {vital ? `${vital.value}${item.key === 'BLOOD_PRESSURE' && vital.secondaryValue ? `/${vital.secondaryValue}` : ''}` : '--'}
-              </div>
-              <div className="stat-unit">{item.unit}</div>
-              <div className="stat-label">{item.name}</div>
+        {loading ? (
+          [1, 2, 3, 4].map(i => (
+            <div key={i} className="stat-card">
+              <Skeleton variant="text" width="60%" height="24px" />
+              <Skeleton variant="text" width="40%" height="12px" />
+              <Skeleton variant="text" width="50%" height="12px" />
             </div>
-          );
-        })}
+          ))
+        ) : (
+          Object.values(CHARTS).map((item) => {
+            const vital = latestByType[item.key];
+            return (
+              <div key={item.key} className="stat-card">
+                <div className="stat-value" style={{ color: item.color }}>
+                  {vital ? `${vital.value}${item.key === 'BLOOD_PRESSURE' && vital.secondaryValue ? `/${vital.secondaryValue}` : ''}` : '--'}
+                </div>
+                <div className="stat-unit">{item.unit}</div>
+                <div className="stat-label">{item.name}</div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

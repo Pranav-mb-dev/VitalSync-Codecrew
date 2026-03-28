@@ -102,6 +102,54 @@ String prompt = """
         return VoiceAssistantResponse.builder().answer(answer).build();
     }
 
+    public VoiceAssistantResponse chat(String requesterEmail, String transcript) {
+        User dataOwner = careContextService.resolveDataOwner(requesterEmail);
+        String langCode = userPreferenceService.resolveLanguageCode(dataOwner);
+        String langName = UserPreferenceService.LANGUAGE_NAMES.getOrDefault(langCode, "English");
+
+        Map<String, Object> context = buildContextSnapshot(dataOwner);
+        String contextJson;
+        try {
+            contextJson = objectMapper.writeValueAsString(context);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not serialize assistant context: " + e.getMessage(), e);
+        }
+
+        String prompt = """
+                You are Vitya, a highly intelligent and caring health AI companion inside the VitalSync app.
+                You are having a TEXT chat conversation.
+                
+                === LANGUAGE RULES — NON-NEGOTIABLE ===
+                - You are a native %s speaker.
+                - Respond ENTIRELY in %s. Not a single English word unless the language is English.
+                - Use natural, warm, and professional %s.
+                
+                === CONTEXT & GOALS ===
+                - Use the provided Patient Data JSON to give accurate, personalized advice.
+                - If the user asks about their vitals, medications, or reports, look at the data first.
+                - Your goal is to help the user manage their chronic conditions (Diabetes, Hypertension, etc.) with empathy.
+                
+                === FORMATTING ===
+                - Use CLEAR, CONCISE sentences.
+                - You CAN use simple markdown like bolding for emphasis (e.g. **120/80**).
+                - Use emojis occasionally to stay warm and friendly 🌟.
+                - Maximum 3-4 sentences per response.
+                - End with a helpful follow-up question in %s.
+                
+                Current time: %s
+                Patient data: %s
+                User message: %s
+                """.formatted(
+                langName, langName, langName, langName,
+                LocalDateTime.now(),
+                contextJson,
+                transcript
+        );
+
+        String answer = callGeminiText(prompt);
+        return VoiceAssistantResponse.builder().answer(answer).build();
+    }
+
     /**
      * Generates an opening greeting in the user's preferred language.
      * Called when the voice chat is first opened.

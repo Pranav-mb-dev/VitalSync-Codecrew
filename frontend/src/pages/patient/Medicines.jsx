@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, CheckCircle2, X, Camera, Trash2, Edit2 } from 'lucide-react';
 import api from '../../services/api';
+import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 
 const NOONS = ['morning', 'afternoon', 'evening', 'night'];
@@ -219,7 +220,20 @@ export default function Medicines() {
       </div>
 
       {loading ? (
-        <div className="card">{t('loading_medicines')}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Skeleton variant="rect" width="44px" height="44px" style={{ borderRadius: 12 }} />
+                <div style={{ flex: 1 }}>
+                  <Skeleton variant="text" width="40%" height="20px" />
+                  <Skeleton variant="text" width="60%" height="14px" />
+                </div>
+              </div>
+              <Skeleton variant="button" width="100px" style={{ marginTop: 16 }} />
+            </div>
+          ))}
+        </div>
       ) : meds.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
           <p>{t('no_medicines')}</p>

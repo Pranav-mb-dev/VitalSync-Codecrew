@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Upload, FileText, Sparkles, Plus, Download, X } from 'lucide-react';
 
 import api from '../../services/api';
+import Skeleton from '../../components/Skeleton';
 
 const STATUS_COLOR = { ok: '#22C55E', warning: '#F59E0B', critical: '#EF4444' };
 const STATUS_BG = { ok: 'rgba(34,197,94,0.1)', warning: 'rgba(245,158,11,0.1)', critical: 'rgba(239,68,68,0.1)' };
@@ -82,7 +83,20 @@ export default function Reports() {
       {error && <div className="alert-banner alert-danger" style={{ marginBottom: 16 }}>{error}</div>}
 
       {loading ? (
-        <div className="card">{t('loading_reports')}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Skeleton variant="rect" width="44px" height="44px" style={{ borderRadius: 12 }} />
+                <div style={{ flex: 1 }}>
+                  <Skeleton variant="text" width="30%" height="20px" />
+                  <Skeleton variant="text" width="80%" height="14px" />
+                  <Skeleton variant="text" width="60%" height="14px" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {reportCards.length === 0 && (

@@ -38,7 +38,9 @@ export default function Signup() {
 
       <div className="auth-logo-section">
         <div className="auth-logo">
-          <Heart fill="#0EA5E9" stroke="none" size={32} />
+          <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'center' }}>
+          <img src="/logo.png" alt="VitalSync" style={{ height: 80, width: 'auto', filter: 'drop-shadow(0 0 12px rgba(14, 165, 233, 0.3))' }} />
+        </div>
           VitalSync
         </div>
         <p className="auth-tagline">{t('tagline')}</p>

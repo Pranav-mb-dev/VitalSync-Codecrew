@@ -2,14 +2,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 import api from '../../services/api';
 
 export default function DoctorProfile() {
   const { t } = useTranslation();
   const { user, logout, setUser } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [profile, setProfile] = useState(user || {});
   const [error, setError] = useState('');
 
@@ -37,7 +37,7 @@ export default function DoctorProfile() {
 
   const doLogout = () => {
     logout();
-    navigate('/login');
+    router.push('/login');
   };
 
   return (

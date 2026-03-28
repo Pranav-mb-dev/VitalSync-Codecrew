@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Users, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -8,11 +9,10 @@ import ThemeToggle from '../../components/ThemeToggle';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { Heart } from 'lucide-react';
 
-export default function DoctorLayout() {
+export default function DoctorLayout({ children }) {
   const { t } = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const pathname = location.pathname;
+  const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const { unreadCount } = useAlerts();
 
@@ -24,14 +24,14 @@ export default function DoctorLayout() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/doctor/patients')}>
+        <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => router.push('/doctor/patients')}>
           <img src="/logo.png" alt="VitalSync" style={{ height: 32, width: 'auto', filter: 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.4))' }} />
           <span style={{ fontWeight: 800, letterSpacing: '-0.5px' }}>VitalSync</span>
         </div>
         <div className="header-actions">
           <LanguageSwitcher />
           <ThemeToggle />
-          <button onClick={() => navigate('/doctor/profile')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => router.push('/doctor/profile')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#22C55E,#0EA5E9)' }}>
               {user?.name?.replace('Dr. ', '')?.[0] || 'N'}
             </div>
@@ -39,14 +39,14 @@ export default function DoctorLayout() {
         </div>
       </header>
       <main className="page-content">
-        <Outlet />
+        {children}
       </main>
       <nav className="bottom-nav">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.path);
           return (
-            <Link key={item.key} to={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ minWidth: 100, textDecoration: 'none' }}>
+            <Link key={item.key} href={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ minWidth: 100, textDecoration: 'none' }}>
               <div className="nav-item-icon" style={{ position: 'relative' }}>
                 <Icon size={22} />
                 {item.key === 'patients' && unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -19,11 +20,10 @@ const NAV = [
   { key: 'progress', icon: Activity, path: '/patient/progress' },
 ];
 
-export default function PatientLayout() {
+export default function PatientLayout({ children }) {
   const { t } = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const pathname = location.pathname;
+  const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
 
   const isProfile = pathname === '/patient/profile';
@@ -32,7 +32,7 @@ export default function PatientLayout() {
     <VoiceProvider userLanguage={user?.language || 'en'}>
       <div className="app-shell">
         <header className="app-header">
-          <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/patient/dashboard')}>
+          <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => router.push('/patient/dashboard')}>
             <img src="/logo.png" alt="VitalSync" style={{ height: 32, width: 'auto', filter: 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.4))' }} />
             <span style={{ fontWeight: 800, letterSpacing: '-0.5px' }}>VitalSync</span>
           </div>
@@ -40,7 +40,7 @@ export default function PatientLayout() {
             <LanguageSwitcher />
             <ThemeToggle />
             <button
-              onClick={() => navigate('/patient/profile')}
+              onClick={() => router.push('/patient/profile')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#EF4444,#8B5CF6)' }}>
@@ -51,7 +51,7 @@ export default function PatientLayout() {
         </header>
 
         <main className="page-content">
-          <Outlet />
+          {children}
         </main>
 
         {/* Voice overlay (always rendered, hidden when idle) */}
@@ -64,7 +64,7 @@ export default function PatientLayout() {
         {!isProfile && (
           <button
             className="fab fab-sos"
-            onClick={() => navigate('/patient/sos')}
+            onClick={() => router.push('/patient/sos')}
             aria-label="SOS"
           >
             SOS
@@ -76,7 +76,7 @@ export default function PatientLayout() {
             const Icon = item.icon;
             const active = pathname === item.path;
             return (
-              <Link key={item.key} to={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ textDecoration: 'none' }}>
+              <Link key={item.key} href={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ textDecoration: 'none' }}>
                 <div className="nav-item-icon">
                   <Icon size={22} />
                 </div>

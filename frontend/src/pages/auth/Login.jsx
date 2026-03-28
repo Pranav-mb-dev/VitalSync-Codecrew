@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Heart, Mail, Lock, Eye, EyeOff, ArrowRight, Stethoscope, Users, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../../components/ThemeToggle';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useState } from 'react';
+
 
 export default function Login() {
   const { t } = useTranslation();
   const { login, loading } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [role, setRole] = useState('patient');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +23,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     const result = await login(email, password, role);
-    if (result.success) navigate(getHomePath(role));
+    if (result.success) router.push(getHomePath(role));
     else setError(result.error);
   };
 
@@ -73,7 +75,7 @@ export default function Login() {
 
       <div style={{ textAlign: 'center', marginTop: 'auto', paddingTop: 24, paddingBottom: 8, fontSize: 18, color: 'var(--text-secondary)' }}>
         {t('no_account')} {' '}
-        <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 700 }}>{t('signup')}</Link>
+        <Link href="/signup" style={{ color: 'var(--primary)', fontWeight: 700 }}>{t('signup')}</Link>
       </div>
     </div>
   );

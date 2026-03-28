@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Heart, User, Users, Lock, Mail, Eye, EyeOff, ArrowRight, CheckCircle2, Link2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../../components/ThemeToggle';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useState } from 'react';
 
 const ROLES = [
   { id: 'patient', icon: <Heart size={24} />, color: '#EF4444', bg: 'rgba(239,68,68,0.12)', key: 'patient', desc: 'Monitor your health journey' },
@@ -14,7 +15,7 @@ const ROLES = [
 export default function Signup() {
   const { t } = useTranslation();
   const { signup, loading } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [role, setRole] = useState('patient');
   const [form, setForm] = useState({ name: '', email: '', password: '', pairCode: '' });
   const [showPass, setShowPass] = useState(false);
@@ -25,7 +26,7 @@ export default function Signup() {
     if (!form.name || !form.email || !form.password) { setError(t('fill_all_fields')); return; }
     if (role === 'caregiver' && !form.pairCode.trim()) { setError(t('caregiver_pair_required')); return; }
     const result = await signup({ ...form, role });
-    if (result.success) navigate(`/${role}/dashboard`);
+    if (result.success) router.push(`/${role}/dashboard`);
     else setError(result.error);
   };
 
@@ -95,7 +96,7 @@ export default function Signup() {
 
       <div style={{ textAlign: 'center', marginTop: 'auto', paddingTop: 24, paddingBottom: 8, fontSize: 18, color: 'var(--text-secondary)' }}>
         {t('already_account')} {' '}
-        <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 700 }}>{t('login')}</Link>
+        <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 700 }}>{t('login')}</Link>
       </div>
     </div>
   );

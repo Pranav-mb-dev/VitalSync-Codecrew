@@ -1,15 +1,15 @@
 'use client';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
 export default function PatientDetail() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="animate-fade">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <button onClick={() => navigate('/doctor/patients')} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', flexShrink: 0 }}>
+        <button onClick={() => router.push('/doctor/patients')} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', flexShrink: 0 }}>
           <ChevronLeft size={20} />
         </button>
         <div>

@@ -1,6 +1,7 @@
 // Caregiver Layout - Alerts in header, Reminders in bottom nav
 import React from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell, Clock, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -17,18 +18,17 @@ const NAV = [
   { key: 'progress', icon: Activity, path: '/caregiver/progress' },
 ];
 
-export default function CaregiverLayout() {
+export default function CaregiverLayout({ children }) {
   const { t } = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const pathname = location.pathname;
+  const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const { unreadCount } = useAlerts();
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/caregiver/dashboard')}>
+        <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => router.push('/caregiver/dashboard')}>
           <img src="/logo.png" alt="VitalSync" style={{ height: 32, width: 'auto', filter: 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.4))' }} />
           <span style={{ fontWeight: 800, letterSpacing: '-0.5px' }}>VitalSync</span>
         </div>
@@ -38,7 +38,7 @@ export default function CaregiverLayout() {
 
           {/* Alerts bell in header */}
           <button
-            onClick={() => navigate('/caregiver/alerts')}
+            onClick={() => router.push('/caregiver/alerts')}
             style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
             aria-label="Alerts"
           >
@@ -58,7 +58,7 @@ export default function CaregiverLayout() {
           </button>
 
           <button
-            onClick={() => navigate('/caregiver/profile')}
+            onClick={() => router.push('/caregiver/profile')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             <div className="avatar avatar-sm" style={{ background: 'linear-gradient(135deg,#0EA5E9,#22C55E)' }}>
@@ -69,7 +69,7 @@ export default function CaregiverLayout() {
       </header>
 
       <main className="page-content">
-        <Outlet />
+        {children}
       </main>
 
       <nav className="bottom-nav">
@@ -77,7 +77,7 @@ export default function CaregiverLayout() {
           const Icon = item.icon;
           const active = pathname === item.path;
           return (
-            <Link key={item.key} to={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ textDecoration: 'none' }}>
+            <Link key={item.key} href={item.path} className={`nav-item ${active ? 'active' : ''}`} style={{ textDecoration: 'none' }}>
               <div className="nav-item-icon">
                 <Icon size={20} />
               </div>

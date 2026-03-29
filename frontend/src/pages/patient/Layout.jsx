@@ -10,6 +10,7 @@ import { Heart } from 'lucide-react';
 import VoiceMicButton from '../../components/voice/VoiceMicButton';
 import VoiceOverlay from '../../components/voice/VoiceOverlay';
 import { VoiceProvider } from '../../context/VoiceContext';
+import VoiceNavigator from '../../components/VoiceNavigator';
 
 const NAV = [
   { key: 'dashboard', icon: LayoutDashboard, path: '/patient/dashboard' },
@@ -53,6 +54,9 @@ export default function PatientLayout({ children }) {
         <main className="page-content">
           {children}
         </main>
+
+        {/* Voice navigator — compass button for voice-based page navigation */}
+        {!isProfile && <VoiceNavigator />}
 
         {/* Voice overlay (always rendered, hidden when idle) */}
         <VoiceOverlay />

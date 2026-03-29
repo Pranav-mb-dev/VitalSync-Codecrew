@@ -85,7 +85,9 @@ public class SecurityConfig {
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "http://192.168.*.*:*",
-                "http://10.*.*.*:*"
+                "http://10.*.*.*:*",
+                "https://*.vercel.app",
+                "https://vitalsync-01.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));

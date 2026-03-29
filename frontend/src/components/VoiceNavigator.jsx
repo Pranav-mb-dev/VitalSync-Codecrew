@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { Compass } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const VoiceNavigator = ({ language = 'en-US' }) => {
   const [isListening, setIsListening] = useState(false);
@@ -19,25 +20,13 @@ const VoiceNavigator = ({ language = 'en-US' }) => {
     kn: { code: 'kn-IN', name: 'Kannada' }
   };
 
+  const { i18n } = useTranslation();
   const [langConfig, setLangConfig] = useState(LANG_MAP.en);
 
   useEffect(() => {
-    // Robustly read the user's preferred language, matching your app's global state logic
-    try {
-      const stored = window.localStorage.getItem('vs-user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u?.language) {
-          const k = u.language.toString().replace(/-.*/, '').toLowerCase();
-          if (LANG_MAP[k]) {
-            setLangConfig(LANG_MAP[k]);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to parse local storage for language", err);
-    }
-  }, []);
+    const k = (i18n?.language || 'en').replace(/-.*/, '').toLowerCase();
+    setLangConfig(LANG_MAP[k] || LANG_MAP.en);
+  }, [i18n?.language]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -135,7 +124,7 @@ const VoiceNavigator = ({ language = 'en-US' }) => {
     }
   ];
 
-  const handleNavigation = async (transcript) => {
+  const handleNavigation = async (finalTranscript) => {
     setIsProcessing(true);
     setStatusMessage('Matching command...');
     
@@ -143,58 +132,60 @@ const VoiceNavigator = ({ language = 'en-US' }) => {
     let matchedKeyword = '';
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      
-      if (!apiKey) {
-        throw new Error("No API key found in NEXT_PUBLIC_GEMINI_API_KEY");
-      }
-
-      const prompt = `Classify this user voice input into EXACTLY ONE of the following precise navigation keywords based on their intent (they might be speaking in ANY language including Tamil, Hindi, etc., translate their intent to one of these actions):
-- DASHBOARD (User wants to go to dashboard, home, health score, or start page)
-- RECORD_SCANNER (User wants to see reports, health report, scan reports, or check medical records)
+      const primaryKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY_PRIMARY;
+      const secondaryKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY_SECONDARY || 'AIzaSyB0SgmPUEibkemaKHNumisnGFCk0k4ROxU';
+      const prompt = `Classify this user voice input into EXACTLY ONE of the following precise navigation keywords based on their intent:
+- DASHBOARD (User wants to go home, dashboard, or start page)
+- RECORD_SCANNER (User wants to see reports, scan reports, or check medical records)
 - FOOD_SCANNER (User wants to see diet, food, meal, or scan food)
-- MEDICINES (User wants to check their medication, tablets, pills, or pharmacy)
-- REMINDERS (User wants to manage habits, appointments, schedule, or reminders)
-- PROGRESS (User wants to see charts, graphs, or progress)
-- PROFILE (User wants to see their profile, account, or settings)
-- SOS (User wants emergency help, ambulance, or sos)
-- UNKNOWN (No clear navigation intent)
+- MEDICINES (User wants to check their medication or pills)
+- REMINDERS (User wants to manage habits, appointments, or reminders)
+- PROGRESS (User wants to see charts or progress)
+- HELP (User says SOS, help, emergency)
+- UNKNOWN (No clear navigation intent, or just conversational text)
 
-Transcript: "${transcript}"
+Transcript: "${finalTranscript}"
 
+If there are multiple intents, pick the primary one. If no keywords match, output UNKNOWN.
 OUTPUT ONLY THE SINGLE ALL-CAPS KEYWORD WITH NO OTHER TEXT OR PUNCTUATION.`;
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
+      const attemptFetch = async (key) => {
+        if (!key) throw new Error("No API key");
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!res.ok) throw new Error("Gemini API call failed");
+        return res.json();
+      };
 
-      if (res.ok) {
-        const data = await res.json();
-        const keyword = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || 'UNKNOWN';
-        console.log('Gemini Parsed Navigation Keyword:', keyword);
-        matchedKeyword = keyword;
+      let data;
+      try {
+        data = await attemptFetch(primaryKey);
+      } catch (err) {
+        console.warn('Primary Gemini API key failed, trying secondary...', err);
+        data = await attemptFetch(secondaryKey);
+      }
 
-        switch(keyword) {
-          case 'DASHBOARD': matchedPath = '/patient/dashboard'; break;
-          case 'RECORD_SCANNER': matchedPath = '/patient/reports'; break;
-          case 'FOOD_SCANNER': matchedPath = '/patient/diet'; break;
-          case 'MEDICINES': matchedPath = '/patient/medicines'; break;
-          case 'REMINDERS': matchedPath = '/patient/reminders'; break;
-          case 'PROGRESS': matchedPath = '/patient/progress'; break;
-          case 'PROFILE': matchedPath = '/patient/profile'; break;
-          case 'SOS': matchedPath = '/patient/sos'; break;
-          default: matchedPath = null;
-        }
-      } else {
-          console.warn(`Gemini API Error (${res.status}). Falling back to local offline matching...`);
-          throw new Error("API Limit or Error");
+      const keyword = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || 'UNKNOWN';
+      console.log('Gemini Parsed Navigation Keyword:', keyword);
+      matchedKeyword = keyword;
+
+      switch(keyword) {
+        case 'DASHBOARD': matchedPath = '/patient/dashboard'; break;
+        case 'RECORD_SCANNER': matchedPath = '/patient/reports'; break;
+        case 'FOOD_SCANNER': matchedPath = '/patient/diet'; break;
+        case 'MEDICINES': matchedPath = '/patient/medicines'; break;
+        case 'REMINDERS': matchedPath = '/patient/reminders'; break;
+        case 'PROGRESS': matchedPath = '/patient/progress'; break;
+        case 'PROFILE': matchedPath = '/patient/profile'; break;
+        case 'HELP': matchedPath = '/patient/sos'; break;
+        default: matchedPath = null;
       }
     } catch (err) {
       console.error('Gemini intent parsing failed, using offline fallback:', err);
-      // Fallback matching
-      const lowerTranscript = transcript.toLowerCase();
+      const lowerTranscript = finalTranscript.toLowerCase();
       for (const mapping of fallbackCommandMappings) {
         if (mapping.keywords.some(keyword => lowerTranscript.includes(keyword))) {
           matchedPath = mapping.path;

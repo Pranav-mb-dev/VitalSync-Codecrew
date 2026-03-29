@@ -1,6 +1,7 @@
 'use client';
 import React, { createContext, useContext, useRef, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 const VoiceContext = createContext();
@@ -112,29 +113,13 @@ export const VoiceProvider = ({ children, userLanguage }) => {
   const [transcription, setTranscription] = useState('');
   const [lastResponse,  setLastResponse]  = useState(null);
   const [conversation,  setConversation]  = useState([]);
-  // ── Language init ─────────────────────────────────────────────────────────
-  // Read localStorage SYNCHRONOUSLY so the correct language is set on the very
-  // first render — before AuthContext's useEffect has a chance to load the user.
-  // This avoids the race where userLanguage === 'en' on mount because auth is async.
-  const [langConfig, setLangConfig] = useState(() => {
-    // 1. Prefer the prop if already available (e.g. server-side or fast renders)
-    if (userLanguage && userLanguage !== 'en') return getLangConfig(userLanguage);
-    // 2. Fall back to localStorage (same key AuthContext uses)
-    try {
-      const stored = localStorage.getItem('vs-user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u?.language) return getLangConfig(u.language);
-      }
-    } catch {}
-    // 3. Use the prop (may be 'en') or hard default
-    return getLangConfig(userLanguage || 'en');
-  });
+  const { i18n } = useTranslation();
+  
+  const [langConfig, setLangConfig] = useState(() => getLangConfig(i18n?.language || 'en'));
 
-  // Keep voice language in sync if the prop changes (e.g. user updates profile language live)
   useEffect(() => {
-    if (userLanguage) setLangConfig(getLangConfig(userLanguage));
-  }, [userLanguage]);
+    setLangConfig(getLangConfig(i18n?.language || 'en'));
+  }, [i18n?.language]);
 
   // ── Core: speak then auto-restart listening if in continuous mode ──────────
   const speakAndContinue = useCallback((text, langCfg) => {
@@ -234,16 +219,17 @@ export const VoiceProvider = ({ children, userLanguage }) => {
       let navMessage = null;
 
       try {
-        // Fallback to the literal key if NEXT_PUBLIC_GEMINI_API_KEY is not yet loaded in the terminal env
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyB0SgmPUEibkemaKHNumisnGFCk0k4ROxU';
-        if (apiKey) {
-          const prompt = `Classify this user voice input into EXACTLY ONE of the following precise navigation keywords based on their intent:
+        const primaryKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY_PRIMARY;
+        const secondaryKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY_SECONDARY || 'AIzaSyB0SgmPUEibkemaKHNumisnGFCk0k4ROxU';
+        
+        const prompt = `Classify this user voice input into EXACTLY ONE of the following precise navigation keywords based on their intent:
 - DASHBOARD (User wants to go home, dashboard, or start page)
 - RECORD_SCANNER (User wants to see reports, scan reports, or check medical records)
 - FOOD_SCANNER (User wants to see diet, food, meal, or scan food)
 - MEDICINES (User wants to check their medication or pills)
 - REMINDERS (User wants to manage habits, appointments, or reminders)
 - PROGRESS (User wants to see charts or progress)
+- HELP (User says SOS, help, emergency)
 - UNKNOWN (No clear navigation intent, or just conversational text)
 
 Transcript: "${finalTranscript}"
@@ -251,46 +237,59 @@ Transcript: "${finalTranscript}"
 If there are multiple intents, pick the primary one. If no keywords match, output UNKNOWN.
 OUTPUT ONLY THE SINGLE ALL-CAPS KEYWORD WITH NO OTHER TEXT OR PUNCTUATION.`;
 
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        const attemptFetch = async (key) => {
+          if (!key) throw new Error("No API key");
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
           });
+          if (!res.ok) throw new Error("Gemini API call failed");
+          return res.json();
+        };
 
-          if (res.ok) {
-            const data = await res.json();
-            const keyword = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || 'UNKNOWN';
-            console.log('Gemini Parsed Navigation Keyword:', keyword);
+        let data;
+        try {
+          data = await attemptFetch(primaryKey);
+        } catch (err) {
+          console.warn('Primary Gemini API key failed, trying secondary...', err);
+          data = await attemptFetch(secondaryKey);
+        }
 
-            switch(keyword) {
-              case 'DASHBOARD':
-                navTarget = '/patient/dashboard';
-                navMessage = 'Going to Dashboard...';
-                break;
-              case 'RECORD_SCANNER':
-                navTarget = '/patient/reports';
-                navMessage = 'Opening Record Scanner...';
-                break;
-              case 'FOOD_SCANNER':
-                navTarget = '/patient/diet';
-                navMessage = 'Opening Food Scanner...';
-                break;
-              case 'MEDICINES':
-                navTarget = '/patient/medicines';
-                navMessage = 'Going to Medicines page...';
-                break;
-              case 'REMINDERS':
-                navTarget = '/patient/reminders';
-                navMessage = 'Going to Reminders page...';
-                break;
-              case 'PROGRESS':
-                navTarget = '/patient/progress';
-                navMessage = 'Going to Progress page...';
-                break;
-              default:
-                navTarget = null;
-            }
-          }
+        const keyword = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || 'UNKNOWN';
+        console.log('Gemini Parsed Navigation Keyword:', keyword);
+
+        switch(keyword) {
+          case 'DASHBOARD':
+            navTarget = '/patient/dashboard';
+            navMessage = 'Going to Dashboard...';
+            break;
+          case 'RECORD_SCANNER':
+            navTarget = '/patient/reports';
+            navMessage = 'Opening Record Scanner...';
+            break;
+          case 'FOOD_SCANNER':
+            navTarget = '/patient/diet';
+            navMessage = 'Opening Food Scanner...';
+            break;
+          case 'MEDICINES':
+            navTarget = '/patient/medicines';
+            navMessage = 'Going to Medicines page...';
+            break;
+          case 'REMINDERS':
+            navTarget = '/patient/reminders';
+            navMessage = 'Going to Reminders page...';
+            break;
+          case 'PROGRESS':
+            navTarget = '/patient/progress';
+            navMessage = 'Going to Progress page...';
+            break;
+          case 'HELP':
+            navTarget = '/patient/sos';
+            navMessage = 'Getting Emergency Help...';
+            break;
+          default:
+            navTarget = null;
         }
       } catch (err) {
         console.error('Gemini intent parsing failed:', err);

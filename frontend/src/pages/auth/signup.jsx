@@ -1,4 +1,4 @@
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Heart, User, Users, Lock, Mail, Eye, EyeOff, ArrowRight, CheckCircle2, Link2 } from 'lucide-react';

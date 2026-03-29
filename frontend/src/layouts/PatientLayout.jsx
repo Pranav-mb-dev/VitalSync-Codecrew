@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,8 +23,8 @@ const NAV = [
 
 export default function PatientLayout({ children }) {
   const { t } = useTranslation();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = router.pathname;
   const { user } = useAuth();
 
   const isProfile = pathname === '/patient/profile';

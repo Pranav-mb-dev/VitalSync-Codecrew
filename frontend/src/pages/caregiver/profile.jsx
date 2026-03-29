@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, Edit2, Check, X, User, Phone, Mail, Calendar, Globe } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import api from '../../services/api';
 
 const getAge = (dateOfBirth) => {

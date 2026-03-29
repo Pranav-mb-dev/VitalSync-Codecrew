@@ -1,6 +1,6 @@
 // Caregiver Layout - Alerts in header, Reminders in bottom nav
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell, Clock, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -20,8 +20,8 @@ const NAV = [
 
 export default function CaregiverLayout({ children }) {
   const { t } = useTranslation();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = router.pathname;
   const { user } = useAuth();
   const { unreadCount } = useAlerts();
 

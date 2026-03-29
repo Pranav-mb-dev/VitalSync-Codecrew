@@ -39,6 +39,9 @@ public class HabitService {
     private final CareContextService careContextService;
     private final UserPreferenceService userPreferenceService;
 
+    @Value("${app.gemini.api-key-primary}")
+    private String geminiPrimaryKey;
+
     @Value("${app.gemini.api-key-secondary}")
     private String geminiSecondaryKey;
 
@@ -147,13 +150,18 @@ public class HabitService {
                 )))
         );
 
-        String url = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiSecondaryKey;
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    url, new HttpEntity<>(requestBody, headers), String.class);
+            ResponseEntity<String> response;
+            try {
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(requestBody, headers), String.class);
+            } catch (Exception e) {
+                log.warn("Primary Gemini key failed, trying secondary...");
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(requestBody, headers), String.class);
+            }
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 String raw = extractGeminiText(response.getBody());

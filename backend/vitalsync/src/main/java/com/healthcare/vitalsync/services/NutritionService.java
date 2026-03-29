@@ -40,6 +40,9 @@ public class NutritionService {
     private final CareContextService careContextService;
     private final UserPreferenceService userPreferenceService;
 
+    @Value("${app.gemini.api-key-primary}")
+    private String geminiPrimaryKey;
+
     @Value("${app.gemini.api-key-secondary}")
     private String geminiSecondaryKey;
 
@@ -94,13 +97,11 @@ public class NutritionService {
                 )))
         );
 
-        String url = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiSecondaryKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    url, new HttpEntity<>(requestBody, headers), String.class);
+            ResponseEntity<String> response = callGemini(requestBody, headers);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 String raw = extractGeminiText(response.getBody());
@@ -155,12 +156,11 @@ public class NutritionService {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
         );
-        String url = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiSecondaryKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(requestBody, headers), String.class);
+            ResponseEntity<String> response = callGemini(requestBody, headers);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 String raw = extractGeminiText(response.getBody());
                 raw = raw.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
@@ -229,12 +229,11 @@ public class NutritionService {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
         );
-        String url = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiSecondaryKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(requestBody, headers), String.class);
+            ResponseEntity<String> response = callGemini(requestBody, headers);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 String raw = extractGeminiText(response.getBody());
                 raw = raw.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
@@ -256,6 +255,16 @@ public class NutritionService {
                     .path("text").asText();
         } catch (Exception e) {
             return "{}";
+        }
+    }
+
+    private ResponseEntity<String> callGemini(Map<String, Object> requestBody, HttpHeaders headers) {
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
+        try {
+            return restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(requestBody, headers), String.class);
+        } catch (Exception e) {
+            log.warn("Primary Gemini key failed for NutritionService, falling back to secondary...");
+            return restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(requestBody, headers), String.class);
         }
     }
 }

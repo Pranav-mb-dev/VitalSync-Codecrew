@@ -41,7 +41,10 @@ public class MedicationService {
     private final RestTemplate restTemplate;
 
     @Value("${app.gemini.api-key-primary}")
-    private String geminiApiKey;
+    private String geminiPrimaryKey;
+
+    @Value("${app.gemini.api-key-secondary}")
+    private String geminiSecondaryKey;
 
     @Value("${app.gemini.model}")
     private String geminiModel;
@@ -96,7 +99,7 @@ public class MedicationService {
             throw new RuntimeException("Failed to read uploaded file", e);
         }
 
-        String geminiUrl = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiApiKey;
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
         String prompt = "Extract all medications from this prescription. " +
             "For each medication, return the data adhering strictly to the following JSON structure: " +
             "[{ \"name\": \"Medicine Name\", \"dosage\": \"500mg\", \"frequency\": \"morning,afternoon,evening,night\" (comma separated valid sessions only based on prescription. Example: \"morning,night\"), \"instructions\": \"Before Food / After Food\", \"durationDays\": 5 (integer, number of days to take) }]. " +
@@ -116,9 +119,13 @@ public class MedicationService {
 
         List<MedicationResponse> savedMeds = new ArrayList<>();
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                geminiUrl, new HttpEntity<>(request, headers), String.class
-            );
+            ResponseEntity<String> response;
+            try {
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(request, headers), String.class);
+            } catch (Exception e) {
+                log.warn("Primary Gemini key failed, trying secondary...");
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(request, headers), String.class);
+            }
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 ObjectMapper mapper = new ObjectMapper();

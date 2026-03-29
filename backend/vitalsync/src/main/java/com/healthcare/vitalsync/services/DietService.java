@@ -44,7 +44,10 @@ public class DietService {
     private final RestTemplate restTemplate;
 
     @Value("${app.gemini.api-key-primary}")
-    private String geminiApiKey;
+    private String geminiPrimaryKey;
+
+    @Value("${app.gemini.api-key-secondary}")
+    private String geminiSecondaryKey;
 
     @Value("${app.gemini.model}")
     private String geminiModel;
@@ -169,7 +172,7 @@ public class DietService {
     }
 
     private List<DietResponse> processGeminiRequest(String email, String prompt, String mimeType, String base64Data) {
-        String geminiUrl = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiApiKey;
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
 
         List<Object> parts = new ArrayList<>();
         parts.add(Map.of("text", prompt));
@@ -184,9 +187,13 @@ public class DietService {
 
         List<DietResponse> savedDiets = new ArrayList<>();
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                geminiUrl, new HttpEntity<>(request, headers), String.class
-            );
+            ResponseEntity<String> response;
+            try {
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(request, headers), String.class);
+            } catch (Exception e) {
+                log.warn("Primary Gemini key failed, trying secondary...");
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(request, headers), String.class);
+            }
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 ObjectMapper mapper = new ObjectMapper();

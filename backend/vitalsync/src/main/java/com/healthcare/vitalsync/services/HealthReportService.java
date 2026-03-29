@@ -39,7 +39,10 @@ public class HealthReportService {
     private final UserPreferenceService userPreferenceService;
 
     @Value("${app.gemini.api-key-primary}")
-    private String geminiApiKey;
+    private String geminiPrimaryKey;
+
+    @Value("${app.gemini.api-key-secondary}")
+    private String geminiSecondaryKey;
 
     @Value("${app.gemini.model}")
     private String geminiModel;
@@ -70,8 +73,6 @@ public class HealthReportService {
         // Upload the file natively to Supabase Storage!
         String fileUrl = supabaseStorageClient.uploadFile(fileBytes, file.getOriginalFilename(), mimeType);
 
-        String geminiUrl = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiApiKey;
-
         // ==========================================
         //  STEP 1: Gemini OCR Extraction
         // ==========================================
@@ -80,9 +81,7 @@ public class HealthReportService {
         
         String rawText = "No text extracted.";
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    geminiUrl, new HttpEntity<>(ocrRequest, createJsonHeaders()), String.class
-            );
+            ResponseEntity<String> response = callGemini(ocrRequest, createJsonHeaders());
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 rawText = parseGeminiText(response.getBody());
             }
@@ -160,9 +159,7 @@ if (!"No text extracted.".equals(rawText)) {
         boolean critical = false;
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    geminiUrl, new HttpEntity<>(synthesisRequest, createJsonHeaders()), String.class
-            );
+            ResponseEntity<String> response = callGemini(synthesisRequest, createJsonHeaders());
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 String parsed = parseGeminiText(response.getBody());
@@ -322,5 +319,15 @@ if (!"No text extracted.".equals(rawText)) {
                 .criticalFlagged(r.isCriticalFlagged())
                 .uploadedAt(r.getUploadedAt())
                 .build();
+    }
+
+    private ResponseEntity<String> callGemini(Map<String, Object> requestBody, HttpHeaders headers) {
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
+        try {
+            return restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(requestBody, headers), String.class);
+        } catch (Exception e) {
+            log.warn("Primary Gemini key failed for HealthReportService, falling back to secondary...");
+            return restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(requestBody, headers), String.class);
+        }
     }
 }

@@ -28,8 +28,11 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VitalReadingService {
 
     private final VitalReadingRepository vitalReadingRepository;
@@ -37,6 +40,9 @@ public class VitalReadingService {
     private final SosAlertService sosAlertService;
     private final RestTemplate restTemplate;
     private final CareContextService careContextService;
+
+    @Value("${app.gemini.api-key-primary}")
+    private String geminiPrimaryKey;
 
     @Value("${app.gemini.api-key-secondary}")
     private String geminiSecondaryKey;
@@ -302,13 +308,18 @@ public class VitalReadingService {
                 )))
         );
 
-        String url = geminiEndpoint + "/" + geminiModel + ":generateContent?key=" + geminiSecondaryKey;
+        String urlPattern = geminiEndpoint + "/" + geminiModel + ":generateContent?key=%s";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    url, new HttpEntity<>(requestBody, headers), String.class);
+            ResponseEntity<String> response;
+            try {
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiPrimaryKey), new HttpEntity<>(requestBody, headers), String.class);
+            } catch (Exception e) {
+                log.warn("Primary Gemini key failed for vital reading, falling back to secondary...");
+                response = restTemplate.postForEntity(String.format(urlPattern, geminiSecondaryKey), new HttpEntity<>(requestBody, headers), String.class);
+            }
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 String raw = extractGeminiText(response.getBody());

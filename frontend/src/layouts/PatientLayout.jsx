@@ -3,14 +3,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
-import ThemeToggle from '../../components/ThemeToggle';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useAuth } from '../context/AuthContext';
+import ThemeToggle from '../components/ThemeToggle';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { Heart } from 'lucide-react';
-import VoiceMicButton from '../../components/voice/VoiceMicButton';
-import VoiceOverlay from '../../components/voice/VoiceOverlay';
-import { VoiceProvider } from '../../context/VoiceContext';
-import VoiceNavigator from '../../components/VoiceNavigator';
+import VoiceMicButton from '../components/voice/VoiceMicButton';
+import VoiceOverlay from '../components/voice/VoiceOverlay';
+import { VoiceProvider } from '../context/VoiceContext';
+import VoiceNavigator from '../components/VoiceNavigator';
 
 const NAV = [
   { key: 'dashboard', icon: LayoutDashboard, path: '/patient/dashboard' },

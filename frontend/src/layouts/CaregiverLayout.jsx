@@ -4,10 +4,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell, Clock, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
-import { useAlerts } from '../../context/AlertContext';
-import ThemeToggle from '../../components/ThemeToggle';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { useAuth } from '../context/AuthContext';
+import { useAlerts } from '../context/AlertContext';
+import ThemeToggle from '../components/ThemeToggle';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const NAV = [
   { key: 'dashboard', icon: LayoutDashboard, path: '/caregiver/dashboard' },

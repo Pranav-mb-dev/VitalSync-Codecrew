@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { ThemeProvider } from '../context/ThemeContext';
 import { AuthProvider } from '../context/AuthContext';
 import { AlertProvider } from '../context/AlertContext';
-import PatientLayout from './patient/layout';
-import CaregiverLayout from './caregiver/layout';
+import PatientLayout from '../layouts/PatientLayout';
+import CaregiverLayout from '../layouts/CaregiverLayout';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();

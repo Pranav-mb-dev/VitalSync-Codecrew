@@ -150,21 +150,9 @@ export default function PatientProfile() {
             <input type="text" className="input-field" value={editForm.fullName} onChange={e => formChange('fullName', e.target.value)} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
-            <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('date_of_birth')}</label>
-              <input type="date" className="input-field" value={editForm.dateOfBirth} onChange={e => formChange('dateOfBirth', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('interface_language')}</label>
-              <select className="input-field" value={editForm.language} onChange={e => formChange('language', e.target.value)}>
-                <option value="en">English</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-              </select>
-            </div>
+          <div className="form-group" style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('date_of_birth')}</label>
+            <input type="date" className="input-field" value={editForm.dateOfBirth} onChange={e => formChange('dateOfBirth', e.target.value)} />
           </div>
         </div>
 
@@ -231,7 +219,6 @@ export default function PatientProfile() {
           <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>{profile.email}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <span className="pill pill-primary" style={{ padding: '4px 10px', fontSize: 11 }}>Patient</span>
-            <span className="pill" style={{ background: 'var(--bg-base)', padding: '4px 10px', fontSize: 11, textTransform: 'uppercase' }}>{profile.language || 'en'}</span>
           </div>
             <button onClick={startEditing} className="btn btn-primary" style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold' }}>
               <Edit2 size={16} /> {t('edit_profile')}

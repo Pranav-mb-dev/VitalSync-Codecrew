@@ -17,7 +17,7 @@ export default function HealthScoreRing({ score = 78, size = 120 }) {
           stroke={color} strokeWidth={10}
           strokeDasharray={`${dash} ${circumference}`}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 1s ease', filter: `drop-shadow(0 0 8px ${color}88)` }}
+          style={{ transition: 'stroke-dasharray 1s ease' }}
         />
       </svg>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>

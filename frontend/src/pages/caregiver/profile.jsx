@@ -140,21 +140,9 @@ export default function CaregiverProfile() {
             <input type="text" className="input-field" value={editForm.fullName} onChange={e => formChange('fullName', e.target.value)} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
-            <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('date_of_birth')}</label>
-              <input type="date" className="input-field" value={editForm.dateOfBirth} onChange={e => formChange('dateOfBirth', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('interface_language')}</label>
-              <select className="input-field" value={editForm.language} onChange={e => formChange('language', e.target.value)}>
-                <option value="en">English</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-              </select>
-            </div>
+          <div className="form-group" style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('date_of_birth')}</label>
+            <input type="date" className="input-field" value={editForm.dateOfBirth} onChange={e => formChange('dateOfBirth', e.target.value)} />
           </div>
         </div>
 
@@ -193,7 +181,6 @@ export default function CaregiverProfile() {
           <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>{profile.email}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
             <span className="pill pill-primary" style={{ padding: '4px 10px', fontSize: 11, background: 'rgba(14,165,233,0.15)', color: '#0EA5E9' }}>Caregiver</span>
-            <span className="pill" style={{ background: 'var(--bg-base)', padding: '4px 10px', fontSize: 11, textTransform: 'uppercase' }}>{profile.language || 'en'}</span>
             {profile.dateOfBirth && (
               <span className="pill" style={{ background: 'var(--bg-base)', padding: '4px 10px', fontSize: 11 }}>{getAge(profile.dateOfBirth)} yrs</span>
             )}
@@ -246,16 +233,6 @@ export default function CaregiverProfile() {
                 </div>
               </div>
             )}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <Globe size={16} />
-              </div>
-              <div>
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('language')}</p>
-                <p style={{ fontSize: 15, fontWeight: 600, marginTop: 1 }}>{{ en: 'English', ta: 'Tamil', hi: 'Hindi', kn: 'Kannada', te: 'Telugu' }[profile.language] || 'English'}</p>
-              </div>
-            </div>
           </div>
         </div>
 

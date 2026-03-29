@@ -1,5 +1,6 @@
 import '../../globals.css';
 import '../i18n/index.js';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { ThemeProvider } from '../context/ThemeContext';
 import { AuthProvider } from '../context/AuthContext';
@@ -18,6 +19,10 @@ export default function App({ Component, pageProps }) {
 
   return (
     <ThemeProvider>
+      <Head>
+        <title>VitalSync</title>
+        <link rel="icon" href="/logo.png" />
+      </Head>
       <AuthProvider>
         <AlertProvider>
           {isPatientPage ? (

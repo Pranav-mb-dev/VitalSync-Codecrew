@@ -1,5 +1,6 @@
 // Caregiver Layout - Alerts in header, Reminders in bottom nav
 import React from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell, Clock, Heart } from 'lucide-react';
@@ -24,9 +25,17 @@ export default function CaregiverLayout({ children }) {
   const pathname = router.pathname;
   const { user } = useAuth();
   const { unreadCount } = useAlerts();
+  const isProfile = pathname === '/caregiver/profile';
+  const isAlerts = pathname === '/caregiver/alerts';
+  const activeTab = NAV.find(item => pathname === item.path);
+  const tabName = activeTab ? t(activeTab.key) : isProfile ? t('profile') : isAlerts ? t('alerts') : 'Caregiver Portal';
+  const fullTitle = `${tabName} | Caregiver | VitalSync`;
 
   return (
     <div className="app-shell">
+      <Head>
+        <title>{fullTitle}</title>
+      </Head>
       <header className="app-header">
         <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => router.push('/caregiver/dashboard')}>
           <img src="/logo.png" alt="VitalSync" style={{ height: 32, width: 'auto', filter: 'drop-shadow(0 0 8px rgba(14, 165, 233, 0.4))' }} />

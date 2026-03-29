@@ -162,19 +162,23 @@ export default function PatientDashboard() {
       {error && <div className="alert-banner alert-danger" style={{ marginBottom: 16 }}>{error}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.95fr) minmax(0, 1.25fr)', gap: 8, marginBottom: 20 }}>
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--gradient-card)', minHeight: 130, padding: 12 }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', minHeight: 130, padding: 12, position: 'relative' }}>
           {loading ? (
             <>
-              <Skeleton variant="circle" width="72px" height="72px" />
+              <Skeleton variant="circle" width="76px" height="76px" />
               <Skeleton variant="text" width="80px" style={{ marginTop: 10 }} />
             </>
           ) : (
             <>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>{t('health_score')}</p>
-              <HealthScoreRing score={wellnessScore} size={72} />
-              <p style={{ fontSize: 14, fontWeight: 700, marginTop: 6, color: 'var(--primary)' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 700, marginBottom: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{t('health_score')}</p>
+              
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <HealthScoreRing score={wellnessScore} size={84} />
+              </div>
+
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#3B82F6' }}>
                 {wellnessScore >= 75 ? t('health_score_stable') : wellnessScore >= 50 ? t('health_score_attention') : t('health_score_critical')}
-              </p>
+              </div>
             </>
           )}
         </div>
@@ -182,20 +186,29 @@ export default function PatientDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           {loading ? (
             [1, 2, 3, 4].map(i => (
-              <div key={i} className="stat-card" style={{ padding: '10px' }}>
-                <Skeleton variant="circle" width="22px" height="22px" style={{ marginBottom: 4 }} />
-                <Skeleton variant="text" width="100%" height="20px" />
-                <Skeleton variant="text" width="60%" height="10px" />
+              <div key={i} className="card" style={{ padding: '12px', borderRadius: '16px' }}>
+                <Skeleton variant="circle" width="28px" height="28px" style={{ marginBottom: 8 }} />
+                <Skeleton variant="text" width="100%" height="22px" />
+                <Skeleton variant="text" width="60%" height="12px" style={{ marginTop: 4 }} />
               </div>
             ))
           ) : (
             vitalCards.map((vital) => (
-              <div key={vital.label} className="stat-card" style={{ padding: '10px 10px', minHeight: 70 }}>
-                <div className="stat-icon" style={{ background: vital.bg, color: vital.color, borderRadius: 6, width: 22, height: 22, marginBottom: 4 }}>{vital.icon}</div>
-                <div>
-                  <div className="stat-value" style={{ color: vital.color, fontSize: 16 }}>{vital.value}</div>
-                  <div className="stat-unit" style={{ fontSize: 10 }}>{vital.unit}</div>
-                  <div className="stat-label" style={{ marginTop: 2, fontSize: 10 }}>{vital.label}</div>
+              <div key={vital.label} className="card" style={{ padding: '12px', minHeight: 70, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ background: vital.bg, color: vital.color, borderRadius: '8px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+                  {React.cloneElement(vital.icon, { size: 14 })}
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '17px', fontWeight: 800, color: vital.color, lineHeight: 1.1 }}>
+                    {vital.value}
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    {vital.unit}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '2px' }}>
+                    {vital.label}
+                  </div>
                 </div>
               </div>
             ))

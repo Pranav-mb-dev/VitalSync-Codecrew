@@ -1,4 +1,5 @@
 import React from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { LayoutDashboard, Pill, Salad, FileText, Activity, Bell } from 'lucide-react';
@@ -28,9 +29,16 @@ export default function PatientLayout({ children }) {
   const { user } = useAuth();
 
   const isProfile = pathname === '/patient/profile';
+  const isSOS = pathname === '/patient/sos';
+  const activeTab = NAV.find(item => pathname === item.path);
+  const tabName = activeTab ? t(activeTab.key) : isProfile ? t('profile') : isSOS ? 'Emergency SOS' : 'Patient Portal';
+  const fullTitle = `${tabName} | Patient | VitalSync`;
 
   return (
     <VoiceProvider userLanguage={user?.language || 'en'}>
+      <Head>
+        <title>{fullTitle}</title>
+      </Head>
       <div className="app-shell">
         <header className="app-header">
           <div className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => router.push('/patient/dashboard')}>

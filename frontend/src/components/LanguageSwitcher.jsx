@@ -16,7 +16,6 @@ export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const current = LANGS.find(l => l.code === i18n.language) || LANGS[0];
-
   const select = async (code) => {
     i18n.changeLanguage(code);
     localStorage.setItem('vs-lang', code);
@@ -27,16 +26,6 @@ export default function LanguageSwitcher() {
     } catch (err) {
       console.warn('Failed to sync language to backend', err);
     }
-
-    // Sync to vs-user so VoiceNavigator picks up the correct mic language
-    try {
-      const stored = localStorage.getItem('vs-user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        u.language = code;
-        localStorage.setItem('vs-user', JSON.stringify(u));
-      }
-    } catch {}
     setOpen(false);
   };
 

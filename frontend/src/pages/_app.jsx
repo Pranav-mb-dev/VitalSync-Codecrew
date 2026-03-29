@@ -1,6 +1,6 @@
 'use client';
 
-import '../../app/globals.css';
+import '../../globals.css';
 import '../i18n/index.js';
 import { ThemeProvider } from '../context/ThemeContext';
 import { AuthProvider } from '../context/AuthContext';
